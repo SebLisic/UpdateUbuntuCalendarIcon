@@ -64,6 +64,9 @@ $ systemctl daemon-reload --user
 ```
 
 # FAQ
+## Which versions of Ubuntu are supported?
+Only mainline Ubuntu 22.04 LTS is supported. 
+
 ## Does this work with non Ubuntu themes
 No. This program works by creating an icon theme under ~/.icons/ that inherits the standard themes under /usr/share/icons/. Other icon themes would compete
 with that.
