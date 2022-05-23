@@ -28,7 +28,7 @@ even if your computer was snoozing or turned off during the night.
 
 # Install
 ```console
-$ sudo apt install inkscape imagemagick
+$ sudo apt install inkscape imagemagick make git
 $ mkdir -p ~/src
 $ cd ~/src
 $ git clone https://github.com/SebLisic/UpdateUbuntuCalendarIcon.git
