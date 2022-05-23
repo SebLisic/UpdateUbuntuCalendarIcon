@@ -11,7 +11,7 @@ Want the current date and day to show up on your dock icon? Got it!
 
 ![Calendar Icon](docs/images/example.png?raw=true "Calendar Icon")
 
-Want the day of the month shown instead? Got it!
+Want the month shown instead of the weekday? Got it!
 
 ![Calendar Icon with Month](docs/images/month-ex.png?raw=true "Month")
 
