@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="755.41754"
+   height="755.41754"
+   viewBox="0 0 3021.6702 3021.6702"
+   version="1.1"
+   id="svg839"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="calendar.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs833">
+    <rect
+       x="3262.5197"
+       y="660.76095"
+       width="28.621566"
+       height="629.20116"
+       id="rect905" />
+    <rect
+       x="2743.1399"
+       y="1703.5095"
+       width="383.90137"
+       height="1273.8452"
+       id="rect949" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="608.5"
+     inkscape:cy="188.5"
+     inkscape:document-units="mm"
+     inkscape:current-layer="g846"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:window-width="1374"
+     inkscape:window-height="836"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     showguides="false"
+     inkscape:lockguides="false"
+     inkscape:pagecheckerboard="0">
+    <inkscape:grid
+       type="xygrid"
+       id="grid1420"
+       originx="1651.947"
+       originy="1398.2047" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata836">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(1651.9469,1398.2047)">
+    <g
+       id="g846"
+       transform="matrix(0.98117047,0,0,0.98117047,0.37212998,14.311982)">
+      <rect
+         id="background"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#e8e8e8;stroke-width:22.68092978;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         width="3021.6702"
+         height="3021.6702"
+         x="-1651.9469"
+         y="-1398.2047"
+         ry="586.14447"
+         rx="586.14447" />
+      <path
+         id="accent"
+         style="fill:#fc8c84;stroke-opacity:1;stroke:#fc8c84;stroke-width:22.68092978;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none"
+         d="m 781.87682,-1397.3636 c 323.12298,0 586.93278,253.5792 586.55598,589.27998 v 311.35956 H -1652.2814 V -880.3523 c 0,-236.8882 242.8187,-519.2938 566.7828,-517.7072 z"
+         sodipodi:nodetypes="ccccccc" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1994.74px;line-height:1.25;font-family:'Fira Sans Condensed';-inkscape-font-specification:'Fira Sans Condensed, ';text-align:center;text-anchor:middle;fill:#5a5a5a;fill-opacity:1;stroke:none;stroke-width:49.8683"
+         x="-149.09161"
+         y="1201.1144"
+         id="day"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-size:1994.74px;font-family:Ubuntu;-inkscape-font-specification:'Ubuntu, Light';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center"
+           id="tspan10">#D#</tspan></text>
+      <text
+         xml:space="preserve"
+         id="other_date"
+         style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-size:723.541px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:'Ubuntu, Medium';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;letter-spacing:0px;text-anchor:middle;fill:#fcfcfc;fill-opacity:1;stroke:none;stroke-width:2.17064"
+         x="-132.20465"
+         y="-765.97552"
+         transform="scale(1.0974095,0.91123688)"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:723.541px;font-family:Ubuntu;-inkscape-font-specification:'Ubuntu, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;stroke-width:2.17064"
+           id="tspan13">#OD#</tspan></text>
+    </g>
+  </g>
+</svg>
