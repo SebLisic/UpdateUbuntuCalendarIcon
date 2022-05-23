@@ -71,6 +71,9 @@ Only mainline Ubuntu 22.04 LTS is supported.
 No. This program works by creating an icon theme under ~/.icons/ that inherits the standard themes under /usr/share/icons/. Other icon themes would compete
 with that.
 
+## Does this modify system files?
+No. Everything is done under your user account and is easily reversible (see Manual Uninstall above).
+
 # Known Issues
 ## Going to Gnome Settings -> Appearence resets the icon to the Ubuntu default
 Re-run the user service file from the command line, or wait until the next day.
