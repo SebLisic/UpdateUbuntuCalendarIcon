@@ -6,7 +6,7 @@
 ##  Updates the calender icon to current date in   ##
 ##    Ubuntu 22.04.                                ##
 ##										           ##
-##  Sebastian Lisić - git@lisics.net - 10/23/2022  ##
+##  Sebastian Lisić - git@lisics.net - 15/06/2022  ##
 #####################################################
 ##                   What it does                  ##       
 #####################################################
@@ -44,14 +44,20 @@ use constant HELP =>
 			options:
 			--silent - only output errors
 			--other-date [weekday,month] (default: weekday)
+			--accent-color - 6 digit RGB color code (ex. FF0000 )
+		remove - remove icon theme
+			options:
+			--silent - only output errors
 		install-timer - Install user systemd timer
 			options:
 			--silent - only output errors
 			--other-date [weekday,month] (default: weekday)
+			--accent-color - 6 digit RGB color code (ex. FF0000 )
 			--now - Start timer after installing
 		remove-timer - Remove user systemd timer
 			options:
 			--silent - only output errors
+		version - Print version
 ';
 
 use strict;
@@ -60,84 +66,21 @@ use utf8;
 use Encode qw/encode decode/;
 use File::Copy;
 
+#Version
+use constant VERSION => '1.1';
+
 #Prefix to know where we are located. Set during install by makefile
 use constant APPDIR => '.';
 
 ###########
 ##Globals##
 ###########
-
-#Get running theme from gsettings
-my $currentGtkTheme;
-open my $CMD,'-|','/usr/bin/gsettings get org.gnome.desktop.interface gtk-theme' or do {
-	warn "Failed to run '/usr/bin/gsettings get org.gnome.desktop.interface gtk-theme': $@";
-	exit 1;
-};
-$currentGtkTheme = <$CMD>;
-close $CMD;
-#Clean up output
-chomp($currentGtkTheme);
-$currentGtkTheme =~ s/^'|'$//g;
-
-unless ( $currentGtkTheme )
-{
-	warn "\nCould not get current GTK theme\n";
-	exit 1;
-}
-
-#Get current weekday name abbreviation. Using shell command as it has the locale setup already
-my $weekDayName;
-open $CMD,'-|','/usr/bin/date +%a' or do {
-	warn "Failed to run '/usr/bin/date +\%a': $@";
-	exit 1;
-};
-$weekDayName = <$CMD>;
-close $CMD;
-#Clean up output
-chomp($weekDayName);
-#To properly uppcase accents, utf8 string must be decoded
-$weekDayName = decode('utf-8', $weekDayName);
-$weekDayName = ucfirst($weekDayName);
-$weekDayName = encode('utf-8', $weekDayName);
-
-unless ( $weekDayName )
-{
-	warn "\nCould not get current weekday name\n";
-	exit 1;
-}
-
-#Get current month name abbreviation. Using shell command as it has the locale setup already
-my $monthName;
-open $CMD,'-|','/usr/bin/date +%b' or do {
-	warn "Failed to run '/usr/bin/date +\%b': $@";
-	exit 1;
-};
-$monthName = <$CMD>;
-close $CMD;
-#Clean up output
-chomp($monthName);
-#To properly uppcase accents, utf8 string must be decoded
-$monthName = decode('utf-8', $monthName);
-$monthName = ucfirst($monthName);
-$monthName = encode('utf-8', $monthName);
-
-unless ( $monthName )
-{
-	warn "\nCould not get current month name\n";
-	exit 1;
-}
-
-my $userIconPath = "$ENV{HOME}/.icons/Calendar-update-$currentGtkTheme"; #Where icon theme is located
 my $systemdLocalDir = "$ENV{HOME}/.local/share/systemd"; #Where user systemd files are located
-
-#Get current time
-(my $sec, my $min,my $hour, my $mday,my $mon,my $year,my $wday,my $yday, my $isdst) = localtime();
-
 my $templateDir = APPDIR."/templates"; #Dir where templates are located
 my $templateName = 'calendar.svg'; #Template file to use to gen icon
 my $tempDirRoot = '/tmp'; #Where to create tempdir
 
-#Gen unused temp dir name ( will be under /tmp/ )#
+#Generate unused temp dir name ( will be under /tmp/ )#
 my $tempDirName = "update_ubuntu_calendar_icon.";
 
 while ( 1 )
@@ -157,7 +100,7 @@ while ( 1 )
 my $silentOutput = 0; #If true, only output errors
 my $startTimerNow  = 0; #Run timer after creating it
 my $otherDate = 'weekday'; #What the secondary date should be, default weekday
-my $accentColor; #The RGB code of the requested accent color, default to nothing
+my $accentColor; #The RGB code of the requested accent color
 
 #Icon dirs in the theme
 my @iconDirs =
@@ -165,6 +108,7 @@ my @iconDirs =
 			16x16/apps
 			16x16@2x/apps
 			24x24/apps
+			24x24/legacy
 			24x24@2x/apps
 			32x32/apps
 			32x32@2x/apps
@@ -179,6 +123,7 @@ my @iconFiles =
 	qw (
 		calendar-app.png
 		x-calendar-app.png
+		x-office-calendar.png
 	);
 
 #Symlinks of the above as they exist in the Ubuntu themes
@@ -191,7 +136,7 @@ my @iconFileSymLinks =
 	["calendar-app.png","org.gnome.Calendar.png"],
 );
 
-#Accent colors taken from the Yaru theme
+#Accent colors ( taken from the Yaru themes )
 # Name,RGB
 my @accentColors =
 (
@@ -221,8 +166,10 @@ unless ( $runCommand )
 }
 unless (
 	"update" eq $runCommand or
+	"remove" eq $runCommand or
 	"install-timer" eq $runCommand or
-	"remove-timer" eq $runCommand 
+	"remove-timer" eq $runCommand or
+	"version" eq $runCommand
 	)
 {
 	print HELP."\n";
@@ -251,6 +198,32 @@ while ( $commandLineLoopCount < ( int(@ARGV) ) )
 			$otherDate = 'month';
 		}
 	}
+	elsif ( "--accent-color" eq $ARGV[$commandLineLoopCount] and ( "update" eq $runCommand or "install-timer" eq $runCommand ) )
+	#Set custom accent color
+	{
+		$commandLineLoopCount++;
+		#Check length is 6 digits
+		if ( 6 != length($ARGV[$commandLineLoopCount]) )
+		{
+			warn "Invalid accent color code length for '$ARGV[$commandLineLoopCount]'\n";
+			warn "Accent color must be 6 digits\n";
+			warn HELP;
+			exit 1;
+		}
+
+		if ( $ARGV[$commandLineLoopCount] =~ /[0-9a-fA-F]+/g )
+		{
+			$accentColor = "#".uc($ARGV[$commandLineLoopCount]);
+		}
+		else
+		{
+			warn "Invalid accent color code charactors(s) in '$ARGV[$commandLineLoopCount]'\n";
+			warn "Accent color must be only numbers and the letters A - F\n";
+			warn HELP;
+			exit 1;
+		}
+
+	}
 	elsif ( "--now" eq $ARGV[$commandLineLoopCount] and "install-timer" eq $runCommand )
 	#Start timer after installing timer
 	{
@@ -269,8 +242,13 @@ while ( $commandLineLoopCount < ( int(@ARGV) ) )
 ################
 ##Run Commands##
 ################
-
-if ( "update" eq $runCommand ) { update_icon_files(); }
+if ( "version" eq $runCommand ) 
+{ 
+	print VERSION."\n";
+	exit 0;	
+}
+if ( "update" eq $runCommand ) { update_icon_theme(); }
+if ( "remove" eq $runCommand ) { remove_icon_theme(); }
 if ( "install-timer" eq $runCommand ) { install_systemd_timer(); }
 if ( "remove-timer" eq $runCommand ) { remove_systemd_timer(); }
 
@@ -324,7 +302,14 @@ sub install_systemd_timer
 	#Define service and timer file contents
 	my $options = "--other-date $otherDate --silent";
 
-        my @systemdServiceFileContents = 
+	#Add accent to options if defined
+	if ( $accentColor )
+	{
+		#The substr removes the leading "#"
+		$options = $options." --accent-color ".substr($accentColor,1);
+	}
+
+    my @systemdServiceFileContents = 
 	(
 		"[Unit]",
 		"Description=Update Calendar Icon to Current Date",
@@ -483,40 +468,36 @@ sub remove_systemd_timer
 
 }
 
-sub update_icon_files
+sub update_icon_theme
 #Update calendar icon files
 {
 	my $indexThemeFileInheritsLine; #Used to link to proper Ubuntu system theme.
-	my $nonDarkTheme; #Theme name without '-dark'. Used for fill and stroke color matching.
-	my $accentColor; #Used to store accent color.
+	my %currentThemeInfo = getIconThemeInfo(); #Info on the current icon theme
+	my %dateInfo = getTimeInfo();
 
-	#Set up theme inheritance. 
-	if ( "dark" eq substr($currentGtkTheme,-4,4) )
+	##Theme set up##
+
+	#Set accent color to theme unless user requested a specific color
+	if ( $currentThemeInfo{accentColor} && !defined($accentColor) )
 	{
-		$nonDarkTheme = substr($currentGtkTheme,0,-5);
-		$indexThemeFileInheritsLine = "Inherits=$currentGtkTheme,$nonDarkTheme,Yaru-dark,Humanity,hicolor"; 	
-	}
-	else
-	{
-		$nonDarkTheme = $currentGtkTheme;
-		$indexThemeFileInheritsLine = "Inherits=$currentGtkTheme,Yaru,Humanity,hicolor"; 	
+		$accentColor = $currentThemeInfo{accentColor};
 	}
 
-	#Match accent color based on the currently used theme name.
-	for( my $x = 0; $x < int(@accentColors); $x++ )
+	#Default to Yaru accent color if nothing has been found
+	unless ( $accentColor )
 	{
-		if ( $nonDarkTheme eq $accentColors[$x][0] )
-		{
-			$accentColor = $accentColors[$x][1];
-			last;
-		}
+		$accentColor = "#E95420"; #Default to Yaru accent
 	}
+
+	#Set user icon path
+	my $userIconPath = "$ENV{HOME}/.icons/Calendar-update-$currentThemeInfo{parentName}"; 
+	$indexThemeFileInheritsLine = "Inherits=$currentThemeInfo{parentName}"; #Set inherit line in theme index file
 
 	#Index file to be used in user icon theme.
 	my @indexThemeFileContents =
 	(
 		"[Icon Theme]",
-		"Name=Calendar-update-$currentGtkTheme",
+		"Name=Calendar-update-$currentThemeInfo{parentName}",
 		"Comment=Ubuntu Calendar Update Theme",
 		$indexThemeFileInheritsLine,
 		"Example=folder",
@@ -594,11 +575,14 @@ sub update_icon_files
 	foreach my $iconDir ( @iconDirs )
 	{
 		my @iconDirSplit = split('/',$iconDir);
-		mkdir "$tempDirRoot/$tempDirName/$iconDirSplit[-2]" or do {
-			warn "Could not create '$tempDirRoot/$tempDirName/$iconDirSplit[-2]' $!";
-			remove_temp_dir();
-			exit 1;
-		};
+		unless ( -d "$tempDirRoot/$tempDirName/$iconDirSplit[-2]" )
+		{
+			mkdir "$tempDirRoot/$tempDirName/$iconDirSplit[-2]" or do {
+				warn "Could not create '$tempDirRoot/$tempDirName/$iconDirSplit[-2]' $!";
+				remove_temp_dir();
+				exit 1;
+			};
+		}
 			
 		mkdir "$tempDirRoot/$tempDirName/$iconDirSplit[-2]/$iconDirSplit[-1]" or do {
 			warn "Could not create '$tempDirRoot/$tempDirName/$iconDirSplit[-2]/$iconDirSplit[-1]' $!";
@@ -629,19 +613,19 @@ sub update_icon_files
 	while ( <$file> )
 	{
 		#Update current day
-		$_ =~ s/#D#/$mday/g;
+		$_ =~ s/#D#/$dateInfo{dayOfMonth}/g;
 
 		#Update other date
 		if ( "weekday" eq $otherDate )
 		{
-			$_ =~ s/#OD#/$weekDayName/g;
+			$_ =~ s/#OD#/$dateInfo{dayName}/g;
 		}
 		elsif ( "month" eq $otherDate )
 		{
-			$_ =~ s/#OD#/$monthName/g;
+			$_ =~ s/#OD#/$dateInfo{monthName}/g;
 		}
 
-		#Update accent colors ( the color #fc8c84 in the template will be replaced )
+		#Update accent colors ( the color #fc8c84 in the template will be replaced ).
 		$_ =~ s/#fc8c84/$accentColor/g;
 
 		push(@templateConents,$_);
@@ -697,15 +681,26 @@ sub update_icon_files
 	}
 
 	##Copy images to new user theme##
+
 	#Remove old icon theme dir
 	system("rm -rf $ENV{HOME}/.icons/Calendar-update-*") and do {
 		warn "Failed to run 'rm -rf $ENV{HOME}/.icons/Calendar-update-*': $?";
 		remove_temp_dir(); #Clean up what we can
 		exit 1;
 	};
+
 	#Create user theme dir
+	unless ( -d "$ENV{HOME}/.icons" )
+	{
+		mkdir "$ENV{HOME}/.icons" or do {
+			warn "Could not create '$ENV{HOME}/.icons' $!";
+			remove_temp_dir();
+			exit 1;
+		};
+	}
+
 	mkdir $userIconPath or do {
-		warn "Could not create '$userIconPath$!";
+		warn "Could not create '$userIconPath' $!";
 		remove_temp_dir();
 		exit 1;
 	};
@@ -713,11 +708,14 @@ sub update_icon_files
 	foreach my $iconDir ( @iconDirs )
 	{
 		my @iconDirSplit = split('/',$iconDir);
-		mkdir "$userIconPath/$iconDirSplit[-2]" or do {
-			warn "Could not create '$userIconPath/$iconDirSplit[-2]' $!";
-			remove_temp_dir();
-			exit 1;
-		};
+		unless ( -d "$userIconPath/$iconDirSplit[-2]" )
+		{
+			mkdir "$userIconPath/$iconDirSplit[-2]" or do {
+				warn "Could not create '$userIconPath/$iconDirSplit[-2]' $!";
+				remove_temp_dir();
+				exit 1;
+			};
+		}
 			
 		mkdir "$userIconPath/$iconDirSplit[-2]/$iconDirSplit[-1]" or do {
 			warn"Could not create '$userIconPath$iconDirSplit[-2]/$iconDirSplit[-1]' $!";
@@ -773,6 +771,7 @@ sub update_icon_files
 	}
 
 	##Update theme##
+
 	system("/usr/bin/touch $userIconPath") and do {
 		warn "Failed to run '/usr/bin/touch $userIconPath': $?";
 		remove_temp_dir();
@@ -783,19 +782,48 @@ sub update_icon_files
 		remove_temp_dir();
 		exit 1;
 	};
-	#Force icon refresh by applying non-calendar icon theme before update.
-	system("/usr/bin/gsettings set org.gnome.desktop.interface icon-theme $currentGtkTheme") and do {
-		warn "Failed to run '/usr/bin/gsettings set org.gnome.desktop.interface icon-theme $currentGtkTheme': $?";
+	#Force icon refresh by applying parent icon theme before update
+	system("/usr/bin/gsettings set org.gnome.desktop.interface icon-theme $currentThemeInfo{parentName}") and do {
+		warn "Failed to run '/usr/bin/gsettings set org.gnome.desktop.interface icon-theme $currentThemeInfo{parentName}': $?";
 		remove_temp_dir();
 		exit 1;
 	}; 
-	system("/usr/bin/gsettings set org.gnome.desktop.interface icon-theme Calendar-update-$currentGtkTheme") and do {
-		warn "Failed to run '/usr/bin/gsettings set org.gnome.desktop.interface icon-theme Calendar-update-$currentGtkTheme': $?";
+	system("/usr/bin/gsettings set org.gnome.desktop.interface icon-theme Calendar-update-$currentThemeInfo{parentName}") and do {
+		warn "Failed to run '/usr/bin/gsettings set org.gnome.desktop.interface icon-theme Calendar-update-$currentThemeInfo{parentName}': $?";
 		remove_temp_dir();
 		exit 1;
 	}; 
 	
 	remove_temp_dir();
+}
+
+sub remove_icon_theme
+#Remove Calendar Icon Theme
+{
+
+	my %currentThemeInfo = getIconThemeInfo(); #Info on the current icon theme
+	my $userIconPath = "$ENV{HOME}/.icons/Calendar-update-$currentThemeInfo{parentName}"; #Set user icon path
+
+	#Remove old icon theme dir
+	system("rm -rf $ENV{HOME}/.icons/Calendar-update-*") and do {
+		warn "Failed to run 'rm -rf $ENV{HOME}/.icons/Calendar-update-*': $?";
+		exit 1;
+	};
+
+	##Update theme##
+	system("/usr/bin/touch $userIconPath") and do {
+		warn "Failed to run '/usr/bin/touch $userIconPath': $?";
+		exit 1;
+	};
+	system("/usr/sbin/update-icon-caches $ENV{HOME}/.icons/*") and do {
+		warn "Failed to run '/usr/sbin/update-icon-caches $ENV{HOME}/.icons/*': $?";
+		exit 1;
+	};
+	#Apply parent Icon Theme
+	system("/usr/bin/gsettings set org.gnome.desktop.interface icon-theme $currentThemeInfo{parentName}") and do {
+		warn "Failed to run '/usr/bin/gsettings set org.gnome.desktop.interface icon-theme $currentThemeInfo{parentName}': $?";
+		exit 1;
+	}; 
 }
 
 sub remove_temp_dir
@@ -818,7 +846,7 @@ sub remove_temp_dir
 			}		
 		}
 
-		#Remove apps dir
+		#Remove sub dir
 		if ( -d $tempIconDir )
 		{
 			rmdir "$tempIconDir" or do {
@@ -827,12 +855,22 @@ sub remove_temp_dir
 		}
 			
 		#Remove parent dir
-		if ( -d "/$tempDirRoot/$tempDirName/$iconDirSplit[-2]" )
+		#  First see if it is empty, if so delete it
+		my $dirContents;
+		opendir my $dir, "/$tempDirRoot/$tempDirName/$iconDirSplit[-2]" or do {
+			warn "Couldn't open /$tempDirRoot/$tempDirName/$iconDirSplit[-2]: $!";
+		};
+		$dirContents = grep !/^\.\.?$/, readdir $dir;
+
+		unless ( $dirContents )
 		{
-			rmdir "/$tempDirRoot/$tempDirName/$iconDirSplit[-2]" or do {
-				warn "Delete failed '/$tempDirRoot/$tempDirName/$iconDirSplit[-2]' $!";
-			};
-		}		
+			if ( -d "/$tempDirRoot/$tempDirName/$iconDirSplit[-2]" )
+			{
+				rmdir "/$tempDirRoot/$tempDirName/$iconDirSplit[-2]" or do {
+					warn "Delete failed '/$tempDirRoot/$tempDirName/$iconDirSplit[-2]' $!";
+				};
+			}	
+		}	
 	}
 
 	#Remove template file
@@ -851,4 +889,100 @@ sub remove_temp_dir
 		};	
 	}
 
+}
+
+sub getIconThemeInfo
+#Get info on the current icon theme
+#Returns: %{ parentName: String, accentColor: String }
+{
+	my %themeInfo = ( 
+		parentName => "", #Name of parent theme
+		accentColor => "", #Accent Color to use
+	); 
+
+	#Get running icon theme ( or parent if Calendar-Update is being used ) from gsettings
+	open my $CMD,'-|','/usr/bin/gsettings get org.gnome.desktop.interface icon-theme' or do {
+		warn "Failed to run '/usr/bin/gsettings get org.gnome.desktop.interface icon-theme': $@";
+		exit 1;
+	};
+	$themeInfo{parentName} = <$CMD>;
+	close $CMD;
+	#Clean up output
+	chomp($themeInfo{parentName});
+	$themeInfo{parentName} =~ s/^'|'$//g;
+	#Remove "Calendar-update-" from name if it exists
+	$themeInfo{parentName} =~ s/Calendar-update-//g;
+
+	unless ( $themeInfo{parentName} )
+	{
+		warn "\nCould not get current Icon theme\n";
+		exit 1;
+	}
+
+	#See if this is an Ubuntu theme. If so set the accent to those in @accentColors
+	for( my $x = 0; $x < int(@accentColors); $x++ )
+	{
+		if ( $themeInfo{parentName} eq $accentColors[$x][0] )
+		{
+			$themeInfo{accentColor} = $accentColors[$x][1];
+			last;
+		}
+	}
+
+	return %themeInfo;
+}
+
+sub getTimeInfo
+#Get info on the current time
+#Returns: %{ dayOfMonth: String, monthName: String, dayName String }
+{
+	my %dateInfo = (
+		dayOfMonth => 0, #Day of Month
+		monthName => "", #Day of Month
+		dayName => "" #Day of Month
+	);
+
+	#Get current weekday name abbreviation. Using shell command as it has the locale setup already
+	open my $CMD,'-|','/usr/bin/date +%a' or do {
+		warn "Failed to run '/usr/bin/date +\%a': $@";
+		exit 1;
+	};
+	$dateInfo{dayName} = <$CMD>;
+	close $CMD;
+	#Clean up output
+	chomp($dateInfo{dayName});
+	#To properly uppcase accents, utf8 string must be decoded
+	$dateInfo{dayName} = decode('utf-8', $dateInfo{dayName});
+	$dateInfo{dayName} = ucfirst($dateInfo{dayName});
+	$dateInfo{dayName} = encode('utf-8', $dateInfo{dayName});
+	unless ( $dateInfo{dayName} )
+	{
+		warn "\nCould not get current weekday name\n";
+		exit 1;
+	}
+
+	#Get current month name abbreviation. Using shell command as it has the locale setup already
+	open $CMD,'-|','/usr/bin/date +%b' or do {
+		warn "Failed to run '/usr/bin/date +\%b': $@";
+		exit 1;
+	};
+	$dateInfo{monthName} = <$CMD>;
+	close $CMD;
+	#Clean up output
+	chomp($dateInfo{monthName});
+	#To properly uppcase accents, utf8 string must be decoded
+	$dateInfo{monthName} = decode('utf-8', $dateInfo{monthName});
+	$dateInfo{monthName} = ucfirst($dateInfo{monthName});
+	$dateInfo{monthName} = encode('utf-8', $dateInfo{monthName});
+	unless ( $dateInfo{monthName} )
+	{
+		warn "\nCould not get current month name\n";
+		exit 1;
+	}
+
+	#Get current time
+	(my $sec, my $min,my $hour, my $mday,my $mon,my $year,my $wday,my $yday, my $isdst) = localtime();
+	$dateInfo{dayOfMonth} = $mday;
+
+	return(%dateInfo);
 }

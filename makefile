@@ -19,5 +19,7 @@ install:
 	chown $(shell id -u):$(shell id -g) $(TEMPLATESDIR)/calendar.svg
 
 uninstall:
-	$(BINDIR)/update_cal_icon.pl remove-timer
+	./src/update_cal_icon.pl remove-timer
+	./src/update_cal_icon.pl remove
 	rm -rf $(APPDIR)
+  

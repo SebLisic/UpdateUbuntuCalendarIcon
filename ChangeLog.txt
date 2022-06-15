@@ -1,0 +1,10 @@
+## 1.1 ##
+-Improved uninstaller so it restores the orginal theme instead of setting Yaru
+-Added "remove" command for removing the icon without uninstalling the program
+-Supports third-party icon themes
+-Added custom accent color support
+-Will now create the ~/.icons dir if missing
+-Now generates the "x-office-calendar.png" file used by programs like Evolution
+-Added "version" command for displaying the program version
+## 1.0 ##
+-Inital Release
