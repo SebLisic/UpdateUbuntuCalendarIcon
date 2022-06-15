@@ -1,3 +1,6 @@
+# Updates!
+Custom icon themes are now supported! A custom accent color option has been added as well ( see below ).
+
 # Overview
 Jealous of Mac users with their fancy date accurate calendar icon, keep missing meetings since you somehow always think it's the 28th of the month,
 is the static "28" calendar icon driving your OCD mad all but one day of the month?
@@ -11,7 +14,7 @@ Want the current date and day to show up on your dock icon? Got it!
 
 ![Calendar Icon](docs/images/example.png?raw=true "Calendar Icon")
 
-Want the month shown instead of the weekday? Got it!
+Want the day of the month shown instead? Got it!
 
 ![Calendar Icon with Month](docs/images/month-ex.png?raw=true "Month")
 
@@ -47,6 +50,31 @@ $ ~/UpdateUbuntuCalendarIcon/bin/update_cal_icon.pl install-timer --now
 $ ~/UpdateUbuntuCalendarIcon/bin/update_cal_icon.pl install-timer --other-date month --now
 ```
 
+## I want to use my own accent color
+First get the 6 digit color code from a website like https://www.rapidtables.com/web/color/RGB_Color.html . Then install the theme with --accent-color as below:
+```console
+$ ~/UpdateUbuntuCalendarIcon/bin/update_cal_icon.pl install-timer --now --accent-color 28DADA
+```
+
+## I want to install the icon without it auto-updating every day
+```console
+$ ~/UpdateUbuntuCalendarIcon/bin/update_cal_icon.pl update
+```
+
+## I want to remove the icon, but not uninstall the program
+```console
+$ ~/UpdateUbuntuCalendarIcon/bin/update_cal_icon.pl remove
+```
+
+# Update
+```console
+$ cd ~/src/UpdateUbuntuCalendarIcon
+$ git pull
+$ make uninstall
+$ make install
+$ ~/UpdateUbuntuCalendarIcon/bin/update_cal_icon.pl install-timer --now 
+```
+
 # Uninstall
 ```console
 $ cd ~/src/UpdateUbuntuCalendarIcon
@@ -64,15 +92,11 @@ $ systemctl daemon-reload --user
 ```
 
 # FAQ
-## Which versions of Ubuntu are supported?
-Only mainline Ubuntu 22.04 LTS is supported. 
+## Does this work with non Ubuntu themes?
+Yes! No custom options are needed. It will just work.
 
-## Does this work with non Ubuntu themes
-No. This program works by creating an icon theme under ~/.icons/ that inherits the standard themes under /usr/share/icons/. Other icon themes would compete
-with that.
-
-## Does this modify system files?
-No. Everything is done under your user account and is easily reversible (see Manual Uninstall above).
+## Why generate PNGs instead of just using SVG files?
+I found this results in blurry icons. Generating PNG files ensures a sharp image.
 
 # Known Issues
 ## Going to Gnome Settings -> Appearence resets the icon to the Ubuntu default
